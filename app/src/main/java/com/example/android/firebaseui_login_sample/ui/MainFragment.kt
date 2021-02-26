@@ -127,15 +127,13 @@ class MainFragment : Fragment() {
     }
 
 
-    private fun getFactWithPersonalization(fact: String): String {
-        return String.format(
-            resources.getString(
+    private fun getFactWithPersonalization(fact: String): String = String.format(
+        resources.getString(
                 R.string.welcome_message_authed,
                 FirebaseAuth.getInstance().currentUser?.displayName,
                 Character.toLowerCase(fact[0]) + fact.substring(1)
             )
-        )
-    }
+    )
 
     private fun launchSignInFlow() {
         // TODO Complete this function by allowing users to register and sign in with
