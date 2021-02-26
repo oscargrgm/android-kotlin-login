@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.example.android.firebaseui_login_sample
+package com.example.android.firebaseui_login_sample.ui
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.example.android.firebaseui_login_sample.R
 
 class MainActivity : AppCompatActivity() {
 
