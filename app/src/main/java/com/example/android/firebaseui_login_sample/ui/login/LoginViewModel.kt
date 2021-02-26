@@ -18,11 +18,40 @@ package com.example.android.firebaseui_login_sample.ui.login
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.preference.PreferenceManager
 import com.example.android.firebaseui_login_sample.R
+import com.example.android.firebaseui_login_sample.data.FirebaseUserLiveData
+import com.google.firebase.auth.FirebaseUser
 import kotlin.random.Random
 
+enum class AuthenticationState {
+    AUTHENTICATED, UNAUTHENTICATED, INVALID_AUTHENTICATION
+}
+
 class LoginViewModel : ViewModel() {
+
+    // TODO Create an authenticationState variable based off the FirebaseUserLiveData object. By
+    //  creating this variable, other classes will be able to query for whether the user is logged
+    //  in or not
+    val authenticationState = FirebaseUserLiveData().map { firebaseUser: FirebaseUser? ->
+        if (firebaseUser != null) AuthenticationState.AUTHENTICATED
+        else AuthenticationState.UNAUTHENTICATED
+    }
+
+    /**
+     * Gets a fact to display based on the user's set preference of which type of fact they want
+     * to see (Android fact or California fact). If there is no logged in user or if the user has
+     * not set a preference, defaults to showing Android facts.
+     */
+    fun getFactToDisplay(context: Context): String {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val factTypePreferenceKey = context.getString(R.string.preference_fact_type_key)
+        val defaultFactType = context.resources.getStringArray(R.array.fact_type)[0]
+        val funFactType = sharedPreferences.getString(factTypePreferenceKey, defaultFactType)
+
+        return androidFacts[Random.nextInt(0, androidFacts.size)]
+    }
 
     companion object {
         val androidFacts = arrayOf(
@@ -38,27 +67,5 @@ class LoginViewModel : ViewModel() {
             "The largest tree in the world can be found in California",
             "California became a state in 1850"
         )
-    }
-
-    enum class AuthenticationState {
-        AUTHENTICATED, UNAUTHENTICATED, INVALID_AUTHENTICATION
-    }
-
-    // TODO Create an authenticationState variable based off the FirebaseUserLiveData object. By
-    //  creating this variable, other classes will be able to query for whether the user is logged
-    //  in or not
-
-    /**
-     * Gets a fact to display based on the user's set preference of which type of fact they want
-     * to see (Android fact or California fact). If there is no logged in user or if the user has
-     * not set a preference, defaults to showing Android facts.
-     */
-    fun getFactToDisplay(context: Context): String {
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val factTypePreferenceKey = context.getString(R.string.preference_fact_type_key)
-        val defaultFactType = context.resources.getStringArray(R.array.fact_type)[0]
-        val funFactType = sharedPreferences.getString(factTypePreferenceKey, defaultFactType)
-
-        return androidFacts[Random.nextInt(0, androidFacts.size)]
     }
 }

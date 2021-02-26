@@ -17,7 +17,6 @@
 package com.example.android.firebaseui_login_sample.ui
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -27,8 +26,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.example.android.firebaseui_login_sample.R
 import com.example.android.firebaseui_login_sample.databinding.FragmentMainBinding
+import com.example.android.firebaseui_login_sample.ui.login.AuthenticationState
 import com.example.android.firebaseui_login_sample.ui.login.LoginViewModel
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
@@ -36,20 +37,16 @@ import com.google.firebase.auth.FirebaseAuth
 
 class MainFragment : Fragment() {
 
-    companion object {
-        const val TAG = "MainFragment"
-        const val SIGN_IN_RESULT_CODE = 1001
-    }
-
     private val signInContract = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
         val response = IdpResponse.fromResultIntent(it.data)
-        if (it.resultCode == Activity.RESULT_OK) {
-            Log.d(TAG, "Successfully signed in user ${FirebaseAuth.getInstance().currentUser?.displayName}")
+        val message = if (it.resultCode == Activity.RESULT_OK) {
+            "Successfully signed in user ${FirebaseAuth.getInstance().currentUser?.displayName}"
         } else {
-            Log.e(TAG, "Sign in unsuccessful ${response?.error?.errorCode}")
+            "Sign in unsuccessful ${response?.error?.errorCode}"
         }
+        Log.d(TAG, message)
     }
 
     // Get a reference to the ViewModel scoped to this Fragment
@@ -62,8 +59,8 @@ class MainFragment : Fragment() {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false)
 
         // TODO Remove the two lines below once observeAuthenticationState is implemented.
-        binding.welcomeText.text = viewModel.getFactToDisplay(requireContext())
-        binding.authButton.text = getString(R.string.login_btn)
+//        binding.welcomeText.text = viewModel.getFactToDisplay(requireContext())
+//        binding.authButton.text = getString(R.string.login_btn)
 
         binding.authButton.setOnClickListener { launchSignInFlow() }
 
@@ -76,15 +73,22 @@ class MainFragment : Fragment() {
 
         binding.authButton.setOnClickListener {
             // TODO call launchSignInFlow when authButton is clicked
+            launchSignInFlow()
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        // TODO Listen to the result of the sign in process by filter for when
-        //  SIGN_IN_REQUEST_CODE is passed back. Start by having log statements to know
-        //  whether the user has signed in successfully
-    }
+    /**
+     * [onActivityResult] is deprecated and has been replaced by the new
+     * [ActivityResultContracts.StartActivityForResult] contract.
+     *
+     * @see [signInContract]
+     */
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        // TODO Listen to the result of the sign in process by filter for when
+//        //  SIGN_IN_REQUEST_CODE is passed back. Start by having log statements to know
+//        //  whether the user has signed in successfully
+//    }
 
     /**
      * Observes the authentication state and changes the UI accordingly.
@@ -96,14 +100,30 @@ class MainFragment : Fragment() {
 
         // TODO Use the authenticationState variable from LoginViewModel to update the UI
         //  accordingly.
-        //
-        //  TODO If there is a logged-in user, authButton should display Logout. If the
-        //   user is logged in, you can customize the welcome message by utilizing
-        //   getFactWithPersonalition(). I
-
-        // TODO If there is no logged in user, authButton should display Login and launch the sign
-        //  in screen when clicked. There should also be no personalization of the message
-        //  displayed.
+        viewModel.authenticationState.observe(viewLifecycleOwner, Observer { authenticationState ->
+            when (authenticationState) {
+                AuthenticationState.AUTHENTICATED -> {
+                    //  TODO If there is a logged-in user, authButton should display Logout. If the
+                    //   user is logged in, you can customize the welcome message by utilizing
+                    //   getFactWithPersonalization().
+                    binding.welcomeText.text = getFactWithPersonalization(factToDisplay)
+                    binding.authButton.run {
+                        text = getString(R.string.logout_button_text)
+                        setOnClickListener { AuthUI.getInstance().signOut(requireContext()) }
+                    }
+                }
+                else -> {
+                    // TODO If there is no logged in user, authButton should display Login and
+                    //  launch the sign in screen when clicked. There should also be no
+                    //  personalization of the message displayed.
+                    binding.welcomeText.text = factToDisplay
+                    binding.authButton.run {
+                        text = getString(R.string.login_button_text)
+                        setOnClickListener { launchSignInFlow() }
+                    }
+                }
+            }
+        })
     }
 
 
@@ -130,5 +150,9 @@ class MainFragment : Fragment() {
             .setAvailableProviders(providers)
             .build()
         signInContract.launch(singInIntent)
+    }
+
+    companion object {
+        private val TAG = MainFragment::class.java.simpleName
     }
 }

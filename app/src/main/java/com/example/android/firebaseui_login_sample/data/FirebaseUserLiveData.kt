@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.firebaseui_login_sample
+package com.example.android.firebaseui_login_sample.data
 
 import androidx.lifecycle.LiveData
 import com.google.firebase.auth.FirebaseAuth
@@ -40,6 +40,7 @@ class FirebaseUserLiveData : LiveData<FirebaseUser?>() {
         // TODO Use the FirebaseAuth instance instantiated at the beginning of the class to get an
         //  entry point into the Firebase Authentication SDK the app is using.
         //  With an instance of the FirebaseAuth class, you can now query for the current user.
+        value = firebaseAuth.currentUser
     }
 
     // When this object has an active observer, start observing the FirebaseAuth state to see if
