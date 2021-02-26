@@ -16,17 +16,22 @@
 
 package com.example.android.firebaseui_login_sample.ui
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.android.firebaseui_login_sample.R
 import com.example.android.firebaseui_login_sample.databinding.FragmentMainBinding
 import com.example.android.firebaseui_login_sample.ui.login.LoginViewModel
+import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
 
 class MainFragment : Fragment() {
@@ -36,18 +41,31 @@ class MainFragment : Fragment() {
         const val SIGN_IN_RESULT_CODE = 1001
     }
 
+    private val signInContract = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        val response = IdpResponse.fromResultIntent(it.data)
+        if (it.resultCode == Activity.RESULT_OK) {
+            Log.d(TAG, "Successfully signed in user ${FirebaseAuth.getInstance().currentUser?.displayName}")
+        } else {
+            Log.e(TAG, "Sign in unsuccessful ${response?.error?.errorCode}")
+        }
+    }
+
     // Get a reference to the ViewModel scoped to this Fragment
     private val viewModel by viewModels<LoginViewModel>()
     private lateinit var binding: FragmentMainBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_main, container, false)
 
         // TODO Remove the two lines below once observeAuthenticationState is implemented.
         binding.welcomeText.text = viewModel.getFactToDisplay(requireContext())
         binding.authButton.text = getString(R.string.login_btn)
+
+        binding.authButton.setOnClickListener { launchSignInFlow() }
 
         return binding.root
     }
@@ -102,5 +120,15 @@ class MainFragment : Fragment() {
     private fun launchSignInFlow() {
         // TODO Complete this function by allowing users to register and sign in with
         //  either their email address or Google account.
+        val providers = listOf(
+            AuthUI.IdpConfig.EmailBuilder().build(),
+            AuthUI.IdpConfig.GoogleBuilder().build()
+        )
+
+        val singInIntent = AuthUI.getInstance()
+            .createSignInIntentBuilder()
+            .setAvailableProviders(providers)
+            .build()
+        signInContract.launch(singInIntent)
     }
 }
