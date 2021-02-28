@@ -27,6 +27,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.example.android.firebaseui_login_sample.R
 import com.example.android.firebaseui_login_sample.databinding.FragmentMainBinding
 import com.example.android.firebaseui_login_sample.ui.login.AuthenticationState
@@ -74,6 +75,10 @@ class MainFragment : Fragment() {
         binding.authButton.setOnClickListener {
             // TODO call launchSignInFlow when authButton is clicked
             launchSignInFlow()
+        }
+        binding.settingsBtn.setOnClickListener {
+            val action = MainFragmentDirections.actionMainFragmentToSettingsFragment()
+            findNavController().navigate(action)
         }
     }
 
