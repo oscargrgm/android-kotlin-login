@@ -17,10 +17,13 @@
 package com.example.android.firebaseui_login_sample.ui.settings
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceFragmentCompat
 import com.example.android.firebaseui_login_sample.R
+import com.example.android.firebaseui_login_sample.ui.login.AuthenticationState
 import com.example.android.firebaseui_login_sample.ui.login.LoginViewModel
 
 class SettingsFragment : PreferenceFragmentCompat() {
@@ -38,5 +41,20 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val navController = findNavController()
+        viewModel.authenticationState.observe(viewLifecycleOwner, { authenticationState ->
+            when (authenticationState) {
+                AuthenticationState.AUTHENTICATED -> {
+                    Log.d(TAG, "Authenticated")
+                }
+                AuthenticationState.UNAUTHENTICATED -> {
+                    navController.navigate(R.id.loginFragment)
+                }
+                else -> {
+                    Log.e(TAG, "New $authenticationState state that doesn't require any UI change")
+                }
+            }
+        })
     }
 }
